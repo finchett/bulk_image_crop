@@ -120,7 +120,7 @@ style.theme_use("vista")  # Modern theme
 input_frame = ttk.LabelFrame(root, text="Input Folder", padding=(10, 10))
 input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-input_folder_entry = ttk.Entry(input_frame)
+input_folder_entry = ttk.Entry(input_frame, width=40)  # Adjust width here
 input_folder_entry.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
 input_folder_button = ttk.Button(input_frame, text="Browse", command=browse_input_folder)
@@ -130,11 +130,12 @@ input_folder_button.grid(row=0, column=1, padx=5, pady=5)
 output_frame = ttk.LabelFrame(root, text="Output Folder", padding=(10, 10))
 output_frame.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
-output_folder_entry = ttk.Entry(output_frame)
+output_folder_entry = ttk.Entry(output_frame, width=40)  # Adjust width here
 output_folder_entry.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
 output_folder_button = ttk.Button(output_frame, text="Browse", command=browse_output_folder)
 output_folder_button.grid(row=0, column=1, padx=5, pady=5)
+
 
 # Frame for aspect ratio
 aspect_ratio_frame = ttk.LabelFrame(root, text="Aspect Ratio (width:height)", padding=(10, 10))
