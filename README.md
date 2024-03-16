@@ -1,7 +1,7 @@
 # Readme
 This is a tool for bulk cropping images to specified aspect ratio.
 
-![alt text](https://github.com/finchett/bulk_image_crop/blob/main/Screenshot.png?raw=true)
+![alt text](https://github.com/finchett/bulk_image_crop/blob/main/image.png?raw=true)
 
 
 ## Build
