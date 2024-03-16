@@ -59,7 +59,7 @@ def crop_images():
     aspect_ratio_str = aspect_ratio_entry.get()
     
     try:
-        aspect_ratio = list(map(int, aspect_ratio_str.split(':')))
+        aspect_ratio = list(map(float, aspect_ratio_str.split(':')))
         target_ratio = aspect_ratio[0] / aspect_ratio[1]
         
         status_label.config(text="Cropping images...")
