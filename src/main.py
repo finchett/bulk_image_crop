@@ -9,7 +9,7 @@ from ctypes import windll
 # Fix blurry text on Windows
 windll.shcore.SetProcessDpiAwareness(1)
 
-def crop_images_to_ratio(input_folder, output_folder, target_ratio, status_label):
+def crop_images_to_ratio(input_folder, output_folder, target_ratio, aspect_ratio_str, status_label, aspect_ratio_filename_str, orientation):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -20,6 +20,7 @@ def crop_images_to_ratio(input_folder, output_folder, target_ratio, status_label
             with Image.open(os.path.join(input_folder, filename)) as img:
                 width, height = img.size
                 current_ratio = width / height
+                
                 if current_ratio < target_ratio:
                     new_height = width / target_ratio
                     left = 0
@@ -34,7 +35,13 @@ def crop_images_to_ratio(input_folder, output_folder, target_ratio, status_label
                     bottom = height
 
                 cropped_img = img.crop((left, top, right, bottom))
-                cropped_img.save(os.path.join(output_folder, filename))
+                
+                # Append aspect ratio to the filename
+                filename_parts = os.path.splitext(filename)
+
+                new_filename = f"{filename_parts[0]}_{aspect_ratio_filename_str}_{orientation}{filename_parts[1]}"
+                
+                cropped_img.save(os.path.join(output_folder, new_filename))
                 status_label.config(text=f"{filename} cropped successfully.")
         except Exception as e:
             status_label.config(text=f"Error cropping {filename}: {e}")
@@ -42,6 +49,7 @@ def crop_images_to_ratio(input_folder, output_folder, target_ratio, status_label
     all_files_processed = True
     if all_files_processed:
         status_label.config(text="Done")
+
 
 def browse_input_folder():
     folder_path = filedialog.askdirectory()
@@ -59,13 +67,25 @@ def crop_images():
     aspect_ratio_str = aspect_ratio_entry.get()
     
     try:
+        aspect_ratio_filename_str = aspect_ratio_str.replace(':', 'x')
+
+        if (aspect_ratio_str == "ISO"):
+            aspect_ratio_str = "1:1.41421"
+            aspect_ratio_filename_str = "ISO"
+
+        orientation = selected_orientation
+
         aspect_ratio = list(map(float, aspect_ratio_str.split(':')))
-        target_ratio = aspect_ratio[0] / aspect_ratio[1]
+
+        if (orientation == "Portrait"):
+            target_ratio = aspect_ratio[0] / aspect_ratio[1]
+        else:
+            target_ratio = aspect_ratio[1] / aspect_ratio[0]
         
         status_label.config(text="Cropping images...")
 
         # Execute cropping process in a separate thread
-        threading.Thread(target=crop_images_to_ratio, args=(input_folder, output_folder, target_ratio, status_label)).start()
+        threading.Thread(target=crop_images_to_ratio, args=(input_folder, output_folder, target_ratio, aspect_ratio_str, status_label, aspect_ratio_filename_str, orientation)).start()
     except ValueError:
         status_label.config(text="Invalid aspect ratio format. Please use 'width:height'.")
 
@@ -76,8 +96,17 @@ def set_aspect_ratio(preset):
         "4:5": (4, 5),
         "ISO": (1, 1.41421)
     }
-    aspect_ratio_entry.delete(0, tk.END)
-    aspect_ratio_entry.insert(0, f"{preset_aspect_ratios[preset][0]}:{preset_aspect_ratios[preset][1]}")
+    if preset == "ISO":
+        aspect_ratio_entry.delete(0, tk.END)
+        aspect_ratio_entry.insert(0, "ISO")
+    else:
+        aspect_ratio_entry.delete(0, tk.END)
+        aspect_ratio_entry.insert(0, f"{preset_aspect_ratios[preset][0]}:{preset_aspect_ratios[preset][1]}")
+
+def set_orientation(orientation):
+    global selected_orientation
+    selected_orientation = orientation
+
 
 # Create GUI
 root = tk.Tk()
@@ -128,18 +157,31 @@ preset_buttons = {
 for i, button in enumerate(preset_buttons.values()):
     button.grid(row=0, column=i, padx=5)
 
+# Orientation buttons
+orientation_frame = ttk.LabelFrame(root, text="Orientation", padding=(10, 10))
+orientation_frame.grid(row=4, column=0, padx=10, pady=10, sticky="nsew")
+
+portrait_button = ttk.Button(orientation_frame, text="Portrait", command=lambda: set_orientation("Portrait"))
+portrait_button.grid(row=0, column=0, padx=5, pady=5)
+
+landscape_button = ttk.Button(orientation_frame, text="Landscape", command=lambda: set_orientation("Landscape"))
+landscape_button.grid(row=0, column=1, padx=5, pady=5)
+
 # Status Label
 status_label = ttk.Label(root, text="", padding=(10, 10))
-status_label.grid(row=4, column=0, padx=10, pady=10)
+status_label.grid(row=5, column=0, padx=10, pady=10)
 
 # Crop Button
 crop_button = ttk.Button(root, text="Crop Images", command=crop_images)
-crop_button.grid(row=5, column=0, padx=10, pady=10)
+crop_button.grid(row=6, column=0, padx=10, pady=10)
 
 # Configure rows and columns to resize with the window
-for i in range(6):
+for i in range(7):
     root.grid_rowconfigure(i, weight=1)
 root.grid_columnconfigure(0, weight=1)
+
+# Variable to store selected orientation
+selected_orientation = "Portrait"
 
 # Run the GUI
 root.mainloop()
